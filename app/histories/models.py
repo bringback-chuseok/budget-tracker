@@ -1,12 +1,12 @@
 from django.db import models
+
 from app.accounts.models import Accounts
+
+
 # Create your models here.
 class Histories(models.Model):
     account_id = models.ForeignKey(
-        Accounts,
-        on_delete=models.CASCADE,
-        null=False,
-        related_name='histories_records'
+        Accounts, on_delete=models.CASCADE, null=False, related_name="histories_records"
     )
     amount = models.DecimalField(decimal_places=2, max_digits=20)
     balance = models.DecimalField(decimal_places=2, max_digits=20)
@@ -19,5 +19,5 @@ class Histories(models.Model):
         return f"{self.amount} - {self.desc}"
 
     class Meta:
-        verbose_name = '거래'
-        verbose_name_plural = '거래 내역'
+        verbose_name = "거래"
+        verbose_name_plural = "거래 내역"
