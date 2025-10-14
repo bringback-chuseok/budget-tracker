@@ -1,10 +1,9 @@
 # --- Django & Server ---
-Django>=5.0
+Django>=5.2,<5.3
 gunicorn
-uvicorn[standard]
 
-# --- Database (필요시) ---
-psycopg2-binary   # PostgreSQL
+# --- Database ---
+psycopg[binary]>=3.1   # libpq 없이 동작하는 v3 바이너리 휠
 
 # --- 환경 관리 ---
 python-dotenv
