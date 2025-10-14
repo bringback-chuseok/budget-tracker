@@ -29,6 +29,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+class SocialLoginSerializer(serializers.Serializer):
+    provider = serializers.ChoiceField(choices=('google', 'kakao'))
+    token = serializers.CharField()
+
+
 class CookieTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     기본 TokenObtainPairSerializer를 확장하여 커스텀 클레임과 검증 로직을 추가한다.
