@@ -1,0 +1,13 @@
+# --- Django & Server ---
+Django>=5.0
+gunicorn
+uvicorn[standard]
+
+# --- Database (필요시) ---
+psycopg2-binary   # PostgreSQL
+
+# --- 환경 관리 ---
+python-dotenv
+
+# --- uv 패키지 관리자 ---
+uv
