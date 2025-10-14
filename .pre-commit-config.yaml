@@ -1,0 +1,46 @@
+# /Users/mac/PycharmProjects/oz-project/budget-tracker/.pre-commit-config.yaml
+# Ruff + Black + isort + autoflake 기준
+repos:
+  # 위생 검사(공백, EOF, YAML 등)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  # 사용하지 않는 import/변수 제거
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.3.1
+    hooks:
+      - id: autoflake
+        args: [--in-place, --remove-all-unused-imports, --remove-unused-variables]
+        exclude: ^(venv|\.venv|dist|build|migrations)/
+
+  # import 정렬
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+        exclude: ^(venv|\.venv|dist|build|migrations)/
+
+  # 코드 포매팅
+  - repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+      - id: black
+        name: black
+        entry: black
+        language: system
+        types: [python]
+        exclude: ^(venv|\.venv|dist|build|migrations)/
+
+  # 린트(자동 수정 포함)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        exclude: ^(venv|\.venv|dist|build|migrations)/

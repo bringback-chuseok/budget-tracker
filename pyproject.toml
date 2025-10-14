@@ -6,3 +6,30 @@ requires-python = ">=3.13"
 dependencies = [
     "django>=5.2.7",
 ]
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+# 실제 패키지 디렉토리 이름이 하이픈을 쓸 수 없으므로 보통 budget_tracker 형태입니다.
+known_first_party = ["budget_tracker"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+# E,F: 기본 에러/플레이크8, I: import 정리, W: 경고, UP: pyupgrade, B: bugbear
+select = ["E", "F", "I", "W", "UP", "B"]
+ignore = ["E501"]
+exclude = ["venv", ".venv", "dist", "build", "migrations"]
+
+[dependency-groups]
+dev = [
+    "autoflake>=2.3.1",
+    "black>=25.9.0",
+    "isort>=7.0.0",
+    "pre-commit>=4.3.0",
+    "ruff>=0.14.0",
+]
