@@ -1,7 +1,11 @@
+from unittest.mock import patch
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
+
+from .social import SocialLoginError, SocialProfile
 
 User = get_user_model()
 
@@ -80,3 +84,60 @@ class AuthCookieTests(APITestCase):
             format='json',
         )
         self.assertEqual(reuse_response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    @patch('accounts.views.get_social_profile')
+    def test_social_login_creates_user_and_sets_cookies(self, mock_profile):
+        profile = SocialProfile(
+            provider='google',
+            provider_user_id='google-123',
+            email='social@example.com',
+            name='Social User',
+        )
+        mock_profile.return_value = profile
+
+        response = self.client.post(
+            '/auth/login/social/',
+            {'provider': 'google', 'token': 'dummy'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['is_new_user'])
+        self.assertIn(settings.AUTH_COOKIE, response.cookies)
+        self.assertIn(settings.AUTH_COOKIE_REFRESH, response.cookies)
+
+        user = User.objects.get(email='social@example.com')
+        self.assertFalse(user.has_usable_password())
+
+    @patch('accounts.views.get_social_profile')
+    def test_social_login_existing_user(self, mock_profile):
+        profile = SocialProfile(
+            provider='kakao',
+            provider_user_id='kakao-999',
+            email=self.user.email,
+            name='Tester',
+        )
+        mock_profile.return_value = profile
+
+        response = self.client.post(
+            '/auth/login/social/',
+            {'provider': 'kakao', 'token': 'dummy'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['is_new_user'])
+        self.assertEqual(User.objects.filter(email=self.user.email).count(), 1)
+
+    @patch('accounts.views.get_social_profile')
+    def test_social_login_handles_errors(self, mock_profile):
+        mock_profile.side_effect = SocialLoginError('External error')
+
+        response = self.client.post(
+            '/auth/login/social/',
+            {'provider': 'google', 'token': 'invalid'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['detail'], 'External error')

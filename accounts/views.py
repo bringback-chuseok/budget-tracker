@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,7 +7,15 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .serializers import CookieTokenObtainPairSerializer, RegisterSerializer
+from .serializers import (
+    CookieTokenObtainPairSerializer,
+    RegisterSerializer,
+    SocialLoginSerializer,
+)
+from .social import SocialLoginError, get_social_profile
+
+
+User = get_user_model()
 
 
 def _set_cookie(response, name, value, lifetime):
@@ -122,3 +131,59 @@ class RegisterView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class SocialLoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = SocialLoginSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        provider = serializer.validated_data['provider']
+        token = serializer.validated_data['token']
+
+        try:
+            profile = get_social_profile(provider, token)
+        except SocialLoginError as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        user, created = self._get_or_create_user(profile)
+
+        refresh = RefreshToken.for_user(user)
+        response = Response(
+            {
+                'detail': '소셜 로그인에 성공했습니다.',
+                'is_new_user': created,
+            },
+            status=status.HTTP_200_OK,
+        )
+        _set_cookie(response, settings.AUTH_COOKIE, str(refresh.access_token), settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'])
+        _set_cookie(response, settings.AUTH_COOKIE_REFRESH, str(refresh), settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'])
+        return response
+
+    def _get_or_create_user(self, profile):
+        user = User.objects.filter(email=profile.email).first()
+        if user:
+            return user, False
+
+        username_field = User.USERNAME_FIELD
+        base_username = profile.email.split('@')[0] if profile.email else profile.provider_user_id
+        candidate = base_username
+        suffix = 1
+        while User.objects.filter(**{username_field: candidate}).exists():
+            candidate = f'{base_username}_{suffix}'
+            suffix += 1
+
+        user = User(
+            **{
+                username_field: candidate,
+                'email': profile.email,
+            }
+        )
+        if hasattr(user, 'first_name') and profile.name:
+            user.first_name = profile.name
+        user.set_unusable_password()
+        user.save()
+        return user, True
