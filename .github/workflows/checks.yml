@@ -51,8 +51,8 @@ jobs:
       env:
         DATABASE_URL: postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@localhost:5432/${{ secrets.DB_NAME }}
       run: |
-        run python manage.py makemigrations
-        run python manage.py migrate
+        python manage.py makemigrations
+        python manage.py migrate
 
     - name: Run Django Tests
       env:
