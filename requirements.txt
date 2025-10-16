@@ -6,7 +6,8 @@ gunicorn
 psycopg[binary]>=3.1   # libpq 없이 동작하는 v3 바이너리 휠
 
 # --- 환경 관리 ---
-python-dotenv
+python-decouple>=3.8
+python-dotenv>=1.0
 
 # --- uv 패키지 관리자 ---
 uv
