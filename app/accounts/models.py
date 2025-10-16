@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone  # noqa: F401
 
 from app.users.models import Users
 
