@@ -7,6 +7,12 @@ on:
       - main
   pull_request:
 
+env:
+  # Workflow 레벨에서 secrets를 env로 선언
+  POSTGRES_USER: ${{ secrets.DB_USER }}
+  POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  POSTGRES_DB: ${{ secrets.DB_NAME }}
+
 jobs:
   ci:
     runs-on: ubuntu-latest
