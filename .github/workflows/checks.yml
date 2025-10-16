@@ -44,17 +44,46 @@ jobs:
     - name: Install Packages & Libraries
       run: uv sync --dev
 
+    - name: Wait for Postgres (robust)
+      timeout-minutes: 3
+      run: |
+        set -euo pipefail
+        unset DATABASE_URL
+
+        # pg_isready가 없으면 TCP로 폴백
+        if command -v pg_isready >/dev/null 2>&1; then
+          echo "Using pg_isready..."
+          for i in {1..45}; do  # 최대 ~90초
+            if pg_isready -h 127.0.0.1 -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null 2>&1; then
+              echo "Postgres is ready."
+              exit 0
+            fi
+            sleep 2
+          done
+        else
+          echo "pg_isready not found; falling back to TCP probe..."
+          # 순수 TCP: /dev/tcp는 bash 내장
+          for i in {1..45}; do
+            (echo > /dev/tcp/127.0.0.1/5432) >/dev/null 2>&1 && { echo "TCP port open."; exit 0; }
+            sleep 2
+          done
+        fi
+
+        echo "Postgres not ready in time"
+        echo "DBG: HOST=127.0.0.1 PORT=5432 USER=${POSTGRES_USER} DB=${POSTGRES_DB}"
+        exit 1
+
+
     - name: Run ruff (Linting)
       run: uv run ruff check .
 
     - name: Run Django Migration
-      env:
-        DATABASE_URL: postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@localhost:5432/${{ secrets.DB_NAME }}
       run: |
-        uv run python manage.py makemigrations
-        uv run python manage.py migrate
+        unset DATABASE_URL
+        uv run python manage.py makemigrations --noinput
+        uv run python manage.py migrate --noinput
 
     - name: Run Django Tests
-      env:
-        DATABASE_URL: postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@localhost:5432/${{ secrets.DB_NAME }}
-      run: uv run python manage.py test
+      run: |
+        unset DATABASE_URL
+        uv run python manage.py test
