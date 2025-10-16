@@ -8,10 +8,10 @@ on:
   pull_request:
 
 env:
-  # Workflow 레벨에서 secrets를 env로 선언
   POSTGRES_USER: ${{ secrets.DB_USER }}
   POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
   POSTGRES_DB: ${{ secrets.DB_NAME }}
+
 
 jobs:
   ci:
@@ -21,16 +21,16 @@ jobs:
       postgres:
         image: postgres:15-alpine
         env:
-          POSTGRES_USER: ${{ secrets.DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.DB_NAME }}
+          POSTGRES_USER: $POSTGRES_USER
+          POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+          POSTGRES_DB: $POSTGRES_DB
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -h postgres -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }}"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd="pg_isready -h postgres -U $POSTGRES_USER -d $POSTGRES_DB"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
     - name: Checkout code
@@ -55,9 +55,9 @@ jobs:
 
     - name: Run Django Migration
       env:
-        DATABASE_URL: postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/${{ secrets.DB_NAME }}
+        DATABASE_URL: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB
       run: |
-        until pg_isready -h postgres -U ${{ secrets.DB_USER }}; do
+        until pg_isready -h postgres -U $POSTGRES_USER; do
           sleep 2
         done
         uv run python manage.py makemigrations
@@ -65,9 +65,9 @@ jobs:
 
     - name: Run Django Tests
       env:
-        DATABASE_URL: postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/${{ secrets.DB_NAME }}
+        DATABASE_URL: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB
       run: |
-        until pg_isready -h postgres -U ${{ secrets.DB_USER }}; do
+        until pg_isready -h postgres -U $POSTGRES_USER; do
           sleep 2
         done
         uv run python manage.py test
