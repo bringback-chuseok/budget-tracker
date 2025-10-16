@@ -1,7 +1,10 @@
 from django.urls import path
+
 from .views import (
-    AccountCreateView, AccountListView,
-    AccountUpdateView, AccountDeleteView
+    AccountCreateView,
+    AccountDeleteView,
+    AccountListView,
+    AccountUpdateView,
 )
 
 urlpatterns = [
