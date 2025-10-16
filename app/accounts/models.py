@@ -26,7 +26,7 @@ class Accounts(models.Model):
     balance = models.DecimalField(decimal_places=2, max_digits=20)
     #+삭제,생성,수정
     is_deleted = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
