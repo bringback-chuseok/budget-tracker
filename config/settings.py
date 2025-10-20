@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "app.histories",
     "app.users",
     "app.accounts",
+    "app.auth",
 ]
 
 MIDDLEWARE = [
@@ -137,3 +138,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# JWT simple settings (minutes/days)
+JWT_ACCESS_MINUTES = int(os.getenv("JWT_ACCESS_MINUTES", "15"))
+JWT_REFRESH_DAYS = int(os.getenv("JWT_REFRESH_DAYS", "7"))
