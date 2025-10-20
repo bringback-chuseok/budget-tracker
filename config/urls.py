@@ -17,6 +17,7 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import TemplateView
 
 # # prefix 없는 ver
 # urlpatterns = [
@@ -28,6 +29,7 @@ from django.urls import include, path
 
 # prefix 추가 ver
 urlpatterns = [
+    path("", TemplateView.as_view(template_name="social_login.html"), name="home"),
     path("admin/", admin.site.urls),
     path("api/users/", include("app.users.urls")),
     path("api/histories/", include("app.histories.urls")),
