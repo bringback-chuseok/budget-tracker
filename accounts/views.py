@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,6 +8,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from .models import GoogleAccount, KakaoAccount
 from .serializers import (
     CookieTokenObtainPairSerializer,
     RegisterSerializer,
@@ -186,7 +188,10 @@ class SocialLoginView(APIView):
         except SocialLoginError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
-        user, created = self._get_or_create_user(profile)
+        try:
+            user, created = self._get_or_create_user(profile, token)
+        except SocialLoginError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
         refresh = RefreshToken.for_user(user)
         response = Response(
@@ -210,29 +215,72 @@ class SocialLoginView(APIView):
         )
         return response
 
-    def _get_or_create_user(self, profile):
-        user = User.objects.filter(email=profile.email).first()
-        if user:
-            return user, False
+    @transaction.atomic
+    def _get_or_create_user(self, profile, raw_token):
+        if profile.provider == "google":
+            return self._get_or_create_google_user(profile, raw_token)
+        if profile.provider == "kakao":
+            return self._get_or_create_kakao_user(profile, raw_token)
+        raise SocialLoginError("지원하지 않는 소셜 로그인 제공자입니다.")
 
-        username_field = User.USERNAME_FIELD
+    def _get_or_create_google_user(self, profile, raw_token):
+        try:
+            account = GoogleAccount.objects.select_related("user").get(
+                google_user_id=profile.provider_user_id
+            )
+            user = account.user
+            created = False
+        except GoogleAccount.DoesNotExist:
+            user = self._create_social_user(profile)
+            account = GoogleAccount(
+                user=user,
+                google_user_id=profile.provider_user_id,
+            )
+            created = True
+
+        account.email = profile.email or account.email
+        account.name = profile.name or account.name
+        account.access_token = raw_token
+        account.save()
+        return user, created
+
+    def _get_or_create_kakao_user(self, profile, raw_token):
+        try:
+            account = KakaoAccount.objects.select_related("user").get(
+                kakao_user_id=profile.provider_user_id
+            )
+            user = account.user
+            created = False
+        except KakaoAccount.DoesNotExist:
+            user = self._create_social_user(profile)
+            account = KakaoAccount(
+                user=user,
+                kakao_user_id=profile.provider_user_id,
+            )
+            created = True
+
+        account.email = profile.email or account.email
+        account.nickname = profile.name or account.nickname
+        account.access_token = raw_token
+        account.save()
+        return user, created
+
+    def _create_social_user(self, profile):
         base_username = (
             profile.email.split("@")[0] if profile.email else profile.provider_user_id
         )
         candidate = base_username
         suffix = 1
-        while User.objects.filter(**{username_field: candidate}).exists():
+        while User.objects.filter(username=candidate).exists():
             candidate = f"{base_username}_{suffix}"
             suffix += 1
 
-        user = User(
-            **{
-                username_field: candidate,
-                "email": profile.email,
-            }
+        user = User.objects.create_user(
+            username=candidate,
+            email=profile.email or "",
+            password=None,
         )
-        if hasattr(user, "first_name") and profile.name:
+        if profile.name and hasattr(user, "first_name"):
             user.first_name = profile.name
-        user.set_unusable_password()
-        user.save()
-        return user, True
+            user.save(update_fields=["first_name"])
+        return user

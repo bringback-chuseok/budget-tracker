@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from .models import GoogleAccount, KakaoAccount, LocalAccount
 from .social import SocialLoginError, SocialProfile
 
 User = get_user_model()
@@ -25,6 +26,8 @@ class AuthCookieTests(APITestCase):
         created_user = User.objects.get(username="newbie")
         self.assertTrue(created_user.check_password(payload["password"]))
         self.assertEqual(created_user.email, payload["email"])
+        local_account = LocalAccount.objects.get(user=created_user)
+        self.assertEqual(local_account.email, payload["email"])
 
     def setUp(self):
         self.password = "testpass123"
@@ -32,6 +35,11 @@ class AuthCookieTests(APITestCase):
             username="tester",
             email="tester@example.com",
             password=self.password,
+        )
+        LocalAccount.objects.create(
+            user=self.user,
+            email=self.user.email,
+            username=self.user.username,
         )
 
     def test_login_sets_jwt_cookies(self):
@@ -108,6 +116,8 @@ class AuthCookieTests(APITestCase):
 
         user = User.objects.get(email="social@example.com")
         self.assertFalse(user.has_usable_password())
+        account = GoogleAccount.objects.get(user=user)
+        self.assertEqual(account.google_user_id, "google-123")
 
     @patch("accounts.views.get_social_profile")
     def test_social_login_existing_user(self, mock_profile):
@@ -118,6 +128,11 @@ class AuthCookieTests(APITestCase):
             name="Tester",
         )
         mock_profile.return_value = profile
+        KakaoAccount.objects.create(
+            user=self.user,
+            kakao_user_id=profile.provider_user_id,
+            email=self.user.email,
+        )
 
         response = self.client.post(
             "/auth/login/social/",
@@ -128,6 +143,8 @@ class AuthCookieTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data["is_new_user"])
         self.assertEqual(User.objects.filter(email=self.user.email).count(), 1)
+        account = KakaoAccount.objects.get(user=self.user)
+        self.assertEqual(account.kakao_user_id, "kakao-999")
 
     @patch("accounts.views.get_social_profile")
     def test_social_login_handles_errors(self, mock_profile):

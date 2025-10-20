@@ -186,6 +186,13 @@ python manage.py runserver
 - **Kakao Social Login**
   - Access Token 발급 및 이메일 동의 항목 설정이 추가로 필요하여 현재 검증 보류 상태
 
+### 데이터 저장 구조
+
+- 자체 회원 가입 정보: `LocalAccount`
+- 구글 로그인 정보: `GoogleAccount`
+- 카카오 로그인 정보: `KakaoAccount`
+- 모든 계정은 Django 기본 User와 연결되어 JWT 발급 및 권한 처리를 공유합니다.
+
 ## 자동 테스트
 
 ```bash

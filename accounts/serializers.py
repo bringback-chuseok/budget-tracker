@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from .models import LocalAccount
+
 User = get_user_model()
 
 
@@ -25,6 +27,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User(**validated_data)
         user.set_password(password)
         user.save()
+        LocalAccount.objects.create(
+            user=user,
+            email=user.email,
+            username=getattr(user, user.USERNAME_FIELD),
+        )
         return user
 
 
