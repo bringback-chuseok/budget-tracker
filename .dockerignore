@@ -6,6 +6,7 @@ __pycache__/
 .gitignore
 
 .env
+.venv
 
 Dockerfile
 docker-compose.yml
