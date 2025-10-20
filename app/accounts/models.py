@@ -6,7 +6,9 @@ from app.users.models import Users
 
 
 class Accounts(models.Model):
-    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="accounts")
+    user = models.ForeignKey(
+        Users, null=True, blank=True, on_delete=models.CASCADE, related_name="accounts"
+    )
     account_name = models.CharField(max_length=50)  # 계좌 별명
     account_password = models.CharField(max_length=100, blank=True, null=True)
     account_number = models.CharField(max_length=20, blank=True, null=True)
