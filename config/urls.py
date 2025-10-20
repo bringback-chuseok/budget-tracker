@@ -7,6 +7,8 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
+from app.users.views_root import root_redirect
+
 # # prefix 없는 ver
 # urlpatterns = [
 #     path("admin/", admin.site.urls),
@@ -17,12 +19,18 @@ from rest_framework_simplejwt.views import (
 
 # prefix 추가 ver
 urlpatterns = [
+    path("", root_redirect, name="root"),
     path("admin/", admin.site.urls),
     # Page routes
     path(
         "users/signup/",
         TemplateView.as_view(template_name="users/signup.html"),
         name="page-signup",
+    ),
+    path(
+        "login",
+        TemplateView.as_view(template_name="login/login.html"),
+        name="page-login",
     ),
     # API routes
     path("api/users/", include("app.users.urls")),

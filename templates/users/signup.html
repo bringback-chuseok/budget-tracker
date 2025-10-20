@@ -34,22 +34,24 @@
       ev.preventDefault();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
-      const name = document.getElementById('name').value.trim();
+      const username = document.getElementById('name').value.trim();
       const nickname = document.getElementById('nickname').value.trim();
       const phone_number = document.getElementById('phone_number').value.trim();
       const msg = document.getElementById('msg');
       msg.textContent = '';
       try{
-        const res = await fetch('/api/auth/signup/', {
+        const res = await fetch('/api/users/', {
           method:'POST',
           headers:{ 'Content-Type':'application/json', 'X-CSRFToken': getCsrfToken() },
           credentials:'include',
-          body: JSON.stringify({ email, password, name, nickname, phone_number })
+          body: JSON.stringify({ email, password, username, nickname, phone_number })
         });
         const data = await res.json().catch(()=>({}));
         if(!res.ok) throw new Error((data && (data.detail || Object.values(data)[0])) || '가입 실패');
         msg.style.color = '#2e7d32';
         msg.textContent = '가입이 완료되었습니다. 자동 로그인 토큰이 발급되었습니다.';
+
+        window.location.assign('/api/histories');
         // Optional: 토큰을 저장하거나 다음 페이지로 이동 가능
         // console.log('access', data.access); console.log('refresh', data.refresh);
       }catch(e){
