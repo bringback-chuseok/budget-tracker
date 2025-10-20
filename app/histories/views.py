@@ -1,44 +1,49 @@
-# Create your views here.
-from django.urls import reverse_lazy
-from django.views.generic import (
-    CreateView,
-    DeleteView,
-    DetailView,
-    ListView,
-    UpdateView,
-)
+from rest_framework import generics, permissions
 
 from .models import Histories
+from .serializers import HistorySerializer
 
 
-class HistoryCreateView(CreateView):
-    model = Histories
-    template_name = "histories/history_form.html"
-    fields = ["account_id", "amount", "balance", "desc", "inout_type", "transact_type"]
-    success_url = reverse_lazy("histories:list")
+# 거래 생성
+class HistoryCreateView(generics.CreateAPIView):
+    serializer_class = HistorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 
-class HistoryListView(ListView):
-    model = Histories
-    template_name = "histories/history_list.html"
-    context_object_name = "histories"
-    ordering = ["-transacted_at"]
+# 거래 조회
+class HistoryListView(generics.ListAPIView):
+    serializer_class = HistorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Histories.objects.filter(account_id__user=self.request.user)
 
 
-class HistoryDetailView(DetailView):
-    model = Histories
-    template_name = "histories/history_detail.html"
-    context_object_name = "history"
+# 상세 조회
+class HistoryDetailView(generics.RetrieveAPIView):
+    serializer_class = HistorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Histories.objects.filter(account_id__user=self.request.user)
 
 
-class HistoryUpdateView(UpdateView):
-    model = Histories
-    template_name = "histories/history_form.html"
-    fields = ["amount", "balance", "desc", "inout_type", "transact_type"]
-    success_url = reverse_lazy("histories:list")
+# 거래 수정
+class HistoryUpdateView(generics.UpdateAPIView):
+    serializer_class = HistorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Histories.objects.filter(account_id__user=self.request.user)
 
 
-class HistoryDeleteView(DeleteView):
-    model = Histories
-    template_name = "histories/history_confirm_delete.html"
-    success_url = reverse_lazy("histories:list")
+# 거래 삭제
+class HistoryDeleteView(generics.DestroyAPIView):
+    serializer_class = HistorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Histories.objects.filter(account_id__user=self.request.user)
