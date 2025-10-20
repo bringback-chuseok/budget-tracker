@@ -150,6 +150,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 JWT_ACCESS_MINUTES = int(os.getenv("JWT_ACCESS_MINUTES", "15"))
 JWT_REFRESH_DAYS = int(os.getenv("JWT_REFRESH_DAYS", "7"))
 
+KAKAO_JS_KEY = os.getenv("KAKAO_JS_KEY")
+KAKAO_REST_KEY = os.getenv("KAKAO_REST_KEY")
+KAKAO_REDIRECT_URI = os.getenv("KAKAO_REDIRECT_URI")
+
+# Kakao OAuth/Resource URLs
+KAKAO_TOKEN_URL = "https://kauth.kakao.com/oauth/token"
+KAKAO_ME_URL = "https://kapi.kakao.com/v2/user/me"
+KAKAO_TOKEN_INFO_URL = "https://kapi.kakao.com/v1/user/access_token_info"
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=JWT_ACCESS_MINUTES),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=JWT_REFRESH_DAYS),

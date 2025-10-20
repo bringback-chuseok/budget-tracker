@@ -137,7 +137,7 @@
       const msg = document.getElementById('msg');
       msg.textContent = '';
       try {
-        const res = await fetch("{{ api_base }}/login/social/", {
+        const res = await fetch("/api/social/kakao/", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -150,6 +150,7 @@
         if (!res.ok) throw new Error(data.detail || '소셜 로그인 실패');
         msg.style.color = '#2e7d32';
         msg.textContent = data.detail || '소셜 로그인 성공';
+        window.location.assign('/api/histories');
         // location.href = data.redirect || '/';
       } catch (e) {
         msg.style.color = '#d32f2f';
@@ -167,7 +168,7 @@
         window.Kakao.init("{{ kakao_js_key }}");
       }
       window.Kakao.Auth.login({
-        scope: 'account_email, profile_nickname',
+        scope: 'profile_nickname',
         success: function(authObj) {
           const accessToken = authObj.access_token;
           socialLogin('kakao', accessToken);

@@ -7,7 +7,9 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
+from app.users.social import SocialKakaoCallbackView, SocialKakaoLoginView
 from app.users.views_root import root_redirect
+from config import settings
 
 # # prefix 없는 ver
 # urlpatterns = [
@@ -29,7 +31,10 @@ urlpatterns = [
     ),
     path(
         "login",
-        TemplateView.as_view(template_name="login/login.html"),
+        TemplateView.as_view(
+            template_name="login/login.html",
+            extra_context={"kakao_js_key": settings.KAKAO_JS_KEY},
+        ),
         name="page-login",
     ),
     # API routes
@@ -40,4 +45,9 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    # 소셜 로그인 엔드포인트
+    path("api/social/kakao/", SocialKakaoLoginView.as_view(), name="social_kakao"),
+    path(
+        "auth/kakao/callback", SocialKakaoCallbackView.as_view(), name="kakao-callback"
+    ),
 ]
