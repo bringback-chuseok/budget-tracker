@@ -49,6 +49,13 @@ class CookieTokenObtainPairView(TokenObtainPairView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
+        redirect_url = (
+            request.data.get("redirect")
+            or request.query_params.get("redirect")
+            or request.query_params.get("next")
+            or request.data.get("next")
+            or "/"
+        )
         response = super().post(request, *args, **kwargs)
 
         if response.status_code != status.HTTP_200_OK:
@@ -73,7 +80,7 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             )
 
         detail = response.data.get("detail", "로그인에 성공했습니다.")
-        response.data = {"detail": detail}
+        response.data = {"detail": detail, "redirect": redirect_url}
         return response
 
 
@@ -177,6 +184,13 @@ class SocialLoginView(APIView):
     serializer_class = SocialLoginSerializer
 
     def post(self, request):
+        redirect_url = (
+            request.data.get("redirect")
+            or request.query_params.get("redirect")
+            or request.query_params.get("next")
+            or request.data.get("next")
+            or "/"
+        )
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -198,6 +212,7 @@ class SocialLoginView(APIView):
             {
                 "detail": "소셜 로그인에 성공했습니다.",
                 "is_new_user": created,
+                "redirect": redirect_url,
             },
             status=status.HTTP_200_OK,
         )

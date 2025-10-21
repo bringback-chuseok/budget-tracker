@@ -126,7 +126,10 @@
         if (!res.ok) throw new Error(data.detail || '로그인 실패');
         msg.style.color = '#2e7d32';
         msg.textContent = data.detail || '로그인 성공';
-        // location.href = data.redirect || '/';
+        if (data.redirect) {
+          location.href = data.redirect;
+          return;
+        }
       } catch (e) {
         msg.style.color = '#d32f2f';
         msg.textContent = e.message || '로그인 중 오류가 발생했습니다.';
@@ -150,7 +153,10 @@
         if (!res.ok) throw new Error(data.detail || '소셜 로그인 실패');
         msg.style.color = '#2e7d32';
         msg.textContent = data.detail || '소셜 로그인 성공';
-        // location.href = data.redirect || '/';
+        if (data.redirect) {
+          location.href = data.redirect;
+          return;
+        }
       } catch (e) {
         msg.style.color = '#d32f2f';
         msg.textContent = e.message || '소셜 로그인 중 오류가 발생했습니다.';
