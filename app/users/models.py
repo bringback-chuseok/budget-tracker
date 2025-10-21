@@ -1,10 +1,10 @@
-
 from django.db import models
 
 # Create your models here.
 
+
 class Users(models.Model):
-    #id => 자동 작성
+    # id => 자동 작성
     email = models.CharField(max_length=50, unique=True)
     password = models.CharField(max_length=50)
     name = models.CharField(max_length=50)
@@ -23,5 +23,5 @@ class Users(models.Model):
         return f"{self.nickname} - {self.email}"
 
     class Meta:
-        verbose_name = '유저'
-        verbose_name_plural = '유저 목록'
+        verbose_name = "유저"
+        verbose_name_plural = "유저 목록"

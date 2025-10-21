@@ -16,8 +16,25 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
+from django.views.generic import TemplateView
 
 urlpatterns = [
+    path(
+        "",
+        TemplateView.as_view(
+            template_name="accounts/login.html",
+            extra_context={
+                "api_base": "/auth",
+                "kakao_js_key": "YOUR_KAKAO_JAVASCRIPT_KEY",
+                "google_client_id": "YOUR_GOOGLE_CLIENT_ID",
+            },
+        ),
+        name="home",
+    ),
     path("admin/", admin.site.urls),
+    path("api/users/", include("app.users.urls")),
+    path("api/histories/", include("app.histories.urls")),
+    path("api/accounts/", include("app.accounts.urls")),
+    path("auth/", include("accounts.urls", namespace="accounts")),
 ]
