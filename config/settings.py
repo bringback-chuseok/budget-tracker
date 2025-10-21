@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # thirdparty_apps
     "rest_framework",
-    "corsheaders",
+    "django-cors-headers",
     # my_apps
     "app.histories",
     "app.users",
