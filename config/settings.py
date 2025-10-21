@@ -31,7 +31,10 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # 로컬 Docker 접근 허용(개발용)
 ALLOWED_HOSTS = ["*"]
-
+# CORS_ORIGIN_ALLOW_METHODS = ["GET", "POST", "OPTIONS", "HEAD"]  # cors
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:8000",
+# ]
 
 # Application definition
 
