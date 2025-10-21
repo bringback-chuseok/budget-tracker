@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import models
-from django.utils import timezone
+from django.utils import timezone  # noqa: F401
 
 from app.constants import ACCOUNT_TYPE, BANK_CODES  # constants.py에서 import
 

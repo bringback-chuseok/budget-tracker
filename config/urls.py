@@ -51,3 +51,4 @@ urlpatterns = [
         "auth/kakao/callback", SocialKakaoCallbackView.as_view(), name="kakao-callback"
     ),
 ]
+# + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

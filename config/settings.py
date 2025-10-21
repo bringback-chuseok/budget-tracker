@@ -31,7 +31,9 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # 로컬 Docker 접근 허용(개발용)
 ALLOWED_HOSTS = ["*"]
-
+CORS_ORIGIN_ALLOW_METHODS = ["GET", "POST", "OPTIONS", "HEAD"]  # cors
+CORS_ALLOWED_ORIGINS = ["http://localhost:8000", "http://13.209.66.105"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:8000", "http://13.209.66.105"]
 
 # Application definition
 
@@ -45,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # thirdparty_apps
     "rest_framework",
+    "corsheaders",
     # my_apps
     "app.histories",
     "app.users",
@@ -60,6 +63,7 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
