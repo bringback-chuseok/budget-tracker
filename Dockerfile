@@ -32,3 +32,4 @@ RUN chmod +x /app/scripts/run.sh
 EXPOSE 8000
 
 # 기본 실행명령은 docker-compose에서 command로 정의
+CMD ["./scripts/run.sh"]
