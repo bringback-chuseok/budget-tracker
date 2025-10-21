@@ -10,15 +10,60 @@ class UsersAdmin(admin.ModelAdmin):
     list_display = (
         "email",
         "nickname",
-        "name",
+        "first_name",
         "phone_number",
-        "is_admin",
         "is_staff",
         "is_active",
-        "last_login",
+        "date_joined",
     )
 
     list_filter = ("is_staff", "is_active")
-    search_fields = ("email", "nickname", "phone_number")
-    readonly_fields = ("is_admin", "created_at", "updated_at", "last_login")
-    ordering = ("-created_at",)
+    search_fields = ("email", "first_name", "nickname", "phone_number")
+    # AbstractUser 기반 필드셋 구성
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        (
+            "개인정보",
+            {
+                "fields": (
+                    "first_name",
+                    "last_name",
+                    "email",
+                    "nickname",
+                    "phone_number",
+                )
+            },
+        ),
+        (
+            "권한",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
+        ("중요 날짜", {"fields": ("last_login", "date_joined")}),
+    )
+
+    # admin에서 사용자 추가 화면 구성
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "username",
+                    "email",
+                    "password1",
+                    "password2",
+                    "is_staff",
+                    "is_active",
+                ),
+            },
+        ),
+    )
+    ordering = ("-id",)

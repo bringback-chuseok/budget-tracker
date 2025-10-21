@@ -1,20 +1,29 @@
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Users
 from .serializers import UserSerializer
 
+User = get_user_model()
 
-class UserListView(APIView):
+
+class UserListCreateView(APIView):
     def get(self, request):
-        users = Users.objects.all()
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data)
+        qs = User.objects.all().order_by("-id")
+        return Response(UserSerializer(qs, many=True).data)
 
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # username, email, password, nickname, phone_number 등을 입력받을 수 있음
+        data = request.data.copy()
+        password = data.pop("password", None)
+
+        serializer = UserSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        user = User(**serializer.validated_data)
+        if password:
+            user.set_password(password)
+        user.save()
+
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)

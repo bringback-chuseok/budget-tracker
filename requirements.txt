@@ -8,5 +8,8 @@ psycopg[binary]>=3.1   # libpq 없이 동작하는 v3 바이너리 휠
 # --- 환경 관리 ---
 python-dotenv
 
+# --- Auth/JWT ---
+PyJWT>=2.9
+
 # --- uv 패키지 관리자 ---
 uv

@@ -1,9 +1,11 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import Users  # 모델 예시
+User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Users
-        fields = ["id", "email", "nickname"]
+        model = User
+        fields = ["id", "username", "email", "nickname", "phone_number"]
+        read_only_fields = ["id"]

@@ -1,13 +1,15 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
 from app.constants import ACCOUNT_TYPE, BANK_CODES  # constants.py에서 import
-from app.users.models import Users
 
 
 class Accounts(models.Model):
     user = models.ForeignKey(
-        Users, null=True, blank=True, on_delete=models.CASCADE, related_name="accounts"
+        settings.AUTH_USER_MODEL,  # ← 스와퍼블 참조
+        on_delete=models.CASCADE,
+        related_name="accounts",
     )
     account_name = models.CharField(max_length=50)  # 계좌 별명
     account_password = models.CharField(max_length=100, blank=True, null=True)
