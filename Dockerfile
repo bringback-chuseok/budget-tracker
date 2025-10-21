@@ -6,27 +6,30 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
 # 필수 패키지 설치 (uv 실행 및 빌드 도구 등)
-RUN apt-get update && apt-get install -y curl build-essential && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    git \
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # uv 설치
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
 
-# 작업 디렉토리 설정
 WORKDIR /app
 
-# requirements.txt 복사 및 설치
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 의존성 설치 단계: 캐시 최적화
+COPY pyproject.toml uv.lock* /app/
+RUN uv venv && uv sync --frozen || uv sync
 
-# pyproject.toml & uv.lock 복사 및 설치
-COPY . /scripts /scripts
-RUN chmod +x /scripts/run.sh
-
-# 애플리케이션 코드 복사
+# 소스 및 스크립트 복사
 COPY . /app
+RUN chmod +x /app/scripts/run.sh
 
-# 포트 설정 (FastAPI일 경우도 동일)
+# 기본 포트
 EXPOSE 8000
 
-# Django 개발 서버 실행
-CMD ["/scripts/run.sh"]
+# 기본 실행명령은 docker-compose에서 command로 정의
+CMD ["bash", "/app/scripts/run.sh"]

@@ -111,41 +111,75 @@ pre-commit run --all-files
 
 ---
 
-## 🐳 Docker (예시)
+## 🐳 Docker
 
-> ⚠️ 실제 Docker 환경은 별도 동렬님께서 구성 중입니다.
-> 아래 내용은 예시이며, 변경될 수 있습니다.
+📦 이미지 빌드 및 DockerHub 푸시
 
-# docker-compose.yml (예시)
-version: "3.9"
+```bash
+# 로컬에서 Docker 이미지 빌드
+docker build -t budget-tracker .
 
+# DockerHub에 푸시할 태그 지정
+docker tag budget-tracker dockeruserid/budget-tracker:latest
+
+# DockerHub 로그인 후 푸시
+docker login
+docker push dockeruserid/budget-tracker:latest
+```
+☁️ AWS EC2에서 실행
+
+```bash
+# Docker 설치 (Ubuntu 기준)
+sudo apt update
+sudo apt install docker.io -y
+
+# DockerHub에서 이미지 pull
+docker pull dockeruserid/budget-tracker:latest
+
+# 컨테이너 실행
+docker run -d -p 80:8000 --name budget-tracker dockeruserid/budget-tracker:latest
+```
+EC2 보안 그룹에서 포트 80이 열려 있어야 외부 접속이 가능합니다.
+
+📄 docker-compose.yml (요약)
+```yaml
+version: '3.9'
 services:
+  db:
+    image: postgres:15-alpine
+    env_file: [.env]
+    ports: ["5432:5432"]
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ..."]
   web:
     build: .
-    container_name: budget-tracker-web
-    command: uvicorn config.asgi:application --host 0.0.0.0 --port 8000
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
+    command: /app/scripts/run.sh
+    ports: ["8000:8000"]
     depends_on:
-      - db
-
-  db:
-    image: postgres:15
-    container_name: budget-tracker-db
-    restart: always
-    environment:
-      POSTGRES_USER: budget
-      POSTGRES_PASSWORD: tracker
-      POSTGRES_DB: budget_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-
+      db:
+        condition: service_healthy
+    volumes: [.:/app, staticfiles:/app/staticfiles]
 volumes:
   postgres_data:
+  staticfiles:
+```
+전체 코드는 docker-compose.yml 파일을 참고하세요.
+
+🧼 .dockerignore 설정
+이미지 빌드 시 불필요하거나 민감한 파일이 포함되지 않도록 .dockerignore를 설정했습니다:
+```dockerignore
+.venv/
+__pycache__/
+*.pyc
+
+.git
+.gitignore
+.env
+
+docker-compose.yml
+```
+.env, .git, .venv 등은 이미지에 포함되지 않으며, 안전하게 배포할 수 있습니다.
 
 ---
 
